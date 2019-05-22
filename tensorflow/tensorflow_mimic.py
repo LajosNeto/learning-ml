@@ -49,3 +49,29 @@ class Divide(BinaryOperation):
 class Matmul(BinaryOperation):
     def forward(self, a, b):
         return a.dot(b)
+
+
+class Placeholder():
+    def __init__(self):
+        self.value = None
+        _default_graph.placeholders.append(self)
+
+
+class Constant():
+    def __init__(self, value=None):
+        self.__value = value
+        _default_graph.constants.append(self)
+    
+    @property
+    def value(self):
+        return self.__value
+    
+    @value.setter
+    def value(self):
+        raise ValueError("Cannot reassign value.")
+
+
+class Variable():
+    def __init__(self, initial_value=None):
+        self.value = initial_value
+        _default_graph.variables.append(self)
