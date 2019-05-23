@@ -1,5 +1,3 @@
-import numpy as np
-#%%
 class Graph():
     def __init__(self):
         self.operations = []
@@ -75,3 +73,47 @@ class Variable():
     def __init__(self, initial_value=None):
         self.value = initial_value
         _default_graph.variables.append(self)
+
+
+def topology_sort(operation):
+    ordering = []
+    visited_nodes = set()
+
+    def recursive_helper(node):
+        if isinstance(node, Operation):
+            for input_node in node.input_nodes:
+                if input_node not in visited_nodes:
+                    recursive_helper(input_node)
+        
+        visited_nodes.add(node)
+        ordering.append(node)
+    
+    recursive_helper(operation)
+    return ordering
+
+
+class Session():
+    def run(self, operation, feed_dict={}):
+        nodes_sorted = topology_sort(operation)
+
+        for node in nodes_sorted:
+            if type(node) == Placeholder:
+                node.output = feed_dict[node]
+            elif type(node) == Variable or type(node) == Constant:
+                node.output = node.value
+            else:
+                inputs = [node.output for node in node.input_nodes]
+                node.output = node.forward(*inputs)
+        return operation.output
+
+
+if __name__ == "__main__" :
+    Graph().set_as_default()                                                                   
+    a = Constant(15)                                                                           
+    b = Constant(5)                                                                            
+    prod = Multiply(a, b)                                                                      
+    sum = Add(a, b)                                                                            
+    res = Divide(prod, sum)                                                                    
+    session = Session()                                                                        
+    out = session.run(res)                                                                         
+    print(out)      
